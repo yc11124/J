@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- 保護隱私：防止 Google/Bing 等搜尋引擎抓取你的照片與影片 -->
+  <meta name="robots" content="noindex, nofollow">    
+  <title>生日大冒險 🎂</title>
+  
+  <!-- 爆發彩帶效果套件 -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      background: linear-gradient(135deg, #ffdee9 0%, #bfe9ff 100%);
+      font-family: "PingFang TC", "Microsoft JhengHei", -apple-system, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 30px 15px;
+      color: #5a5278;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* 🐱 飄浮可愛背景元件 */
+    .bg-floating-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .float-item {
+      position: absolute;
+      bottom: -60px;
+      font-size: 28px;
+      opacity: 0.8;
+      user-select: none;
+      animation: floatUp 8s linear infinite;
+    }
+
+    .item-1 { left: 5%;  animation-duration: 9s;  animation-delay: 0s; font-size: 32px; }
+    .item-2 { left: 20%; animation-duration: 7s;  animation-delay: 2s; font-size: 26px; }
+    .item-3 { left: 38%; animation-duration: 11s; animation-delay: 1s; font-size: 34px; }
+    .item-4 { left: 55%; animation-duration: 8s;  animation-delay: 3s; font-size: 28px; }
+    .item-5 { left: 72%; animation-duration: 10s; animation-delay: 0.5s; font-size: 30px; }
+    .item-6 { left: 88%; animation-duration: 7.5s; animation-delay: 2.5s; font-size: 26px; }
+
+    @keyframes floatUp {
+      0% {
+        transform: translateY(0) rotate(0deg) scale(0.9);
+        opacity: 0;
+      }
+      15% { opacity: 0.85; }
+      85% { opacity: 0.85; }
+      100% {
+        transform: translateY(-115vh) rotate(25deg) scale(1.1);
+        opacity: 0;
+      }
+    }
+
+    /* 核心卡片容器 */
+    .card {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
+      padding: 30px 22px;
+      border-radius: 30px;
+      border: 4px solid #fff;
+      box-shadow: 0 12px 30px rgba(160, 190, 235, 0.45);
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stage {
+      display: none;
+    }
+    .stage.active {
+      display: block;
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.9) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    h2 {
+      color: #ff6b81;
+      margin-top: 0;
+      font-size: 22px;
+    }
+    
+    /* 可愛風立體按鈕 */
+    button {
+      background-color: #ff8fa3;
+      color: white;
+      border: none;
+      padding: 14px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 18px;
+      cursor: pointer;
+      margin-top: 10px;
+      box-shadow: 0 6px 0px #ff6b81, 0 8px 15px rgba(255, 107, 129, 0.3);
+      transition: all 0.1s ease;
+      width: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0px #ff6b81, 0 4px 8px rgba(255, 107, 129, 0.3);
+    }
+
+    /* 選擇題選項按鈕 */
+    .option-btn {
+      background-color: #e8f4ff;
+      color: #4b6584;
+      box-shadow: 0 5px 0px #b8dcff;
+      border: 2px solid #d0e8ff;
+      text-align: left;
+      padding: 14px 16px;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    .option-btn:active {
+      box-shadow: 0 2px 0px #b8dcff;
+    }
+
+    /* 輸入框 */
+    input {
+      padding: 12px;
+      font-size: 16px;
+      border: 3px solid #ffd1dc;
+      border-radius: 15px;
+      outline: none;
+      text-align: center;
+      width: 100%;
+      margin-bottom: 12px;
+      background-color: #fffafb;
+    }
+    input:focus {
+      border-color: #ff8fa3;
+    }
+
+    /* 蠟燭動畫 */
+    .cake-box {
+      font-size: 80px;
+      cursor: pointer;
+      user-select: none;
+      margin: 15px 0;
+    }
+    .flame {
+      display: inline-block;
+      animation: flicker 0.6s infinite alternate;
+    }
+    @keyframes flicker {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(1.15); opacity: 0.8; }
+    }
+    .smoke {
+      filter: grayscale(100%);
+      opacity: 0.3;
+    }
+
+    /* 寶箱與錯誤搖晃動畫 */
+    .chest {
+      font-size: 85px;
+      cursor: pointer;
+      user-select: none;
+      margin: 15px 0;
+      display: inline-block;
+    }
+    .shake {
+      animation: shakeAnim 0.4s ease;
+    }
+    @keyframes shakeAnim {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+
+    /* 彈出提示卡片 (Modal Overlay) */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(90, 82, 120, 0.75);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      cursor: pointer;
+    }
+    .modal-card {
+      background: white;
+      padding: 22px;
+      border-radius: 25px;
+      max-width: 320px;
+      width: 100%;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      animation: popIn 0.3s ease;
+      border: 4px solid #ffd1dc;
+    }
+    .modal-card img {
+      width: 100%;
+      max-height: 220px;
+      object-fit: cover;
+      border-radius: 16px;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    /* 🎥 影片播放器專屬樣式 */
+    .video-container {
+      background: #000;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      margin: 10px 0 15px 0;
+      border: 3px solid #ffd1dc;
+    }
+    .video-container video {
+      width: 100%;
+      display: block;
+      max-height: 300px;
+      object-fit: contain;
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 20px 10px; }
+      .card { padding: 24px 18px; border-radius: 24px; }
+      h2 { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 🐱 背景飄浮可愛元件 -->
+  <div class="bg-floating-container">
+    <div class="float-item item-1">🐱</div>
+    <div class="float-item item-2">🧋</div>
+    <div class="float-item item-3">⭐</div>
+    <div class="float-item item-4">🎂</div>
+    <div class="float-item item-6">🎁</div>
+  </div>
+
+  <!-- 萬用彈出提示 Modal（點擊選項後跳出） -->
+  <div id="quizModal" class="modal-overlay" onclick="closeQuizModal()">
+    <div class="modal-card">
+      <img id="modalImage" src="" alt="提示圖片">
+      <h3 id="modalTitle" style="color: #ff6b81; margin: 5px 0 10px 0;"></h3>
+      <p id="modalText" style="font-size: 15px; color: #5a5278; margin: 0; line-height: 1.5;"></p>
+      <p style="font-size: 12px; color: #aaa; margin-top: 15px;">( 點擊任意處繼續 )</p>
+    </div>
+  </div>
+
+  <div class="card" id="cardContainer">
+    
+    <!-- 第一關：選擇題關卡 -->
+    <div id="stage1" class="stage active">
+      <h2>🔒 第一關：生日猜謎</h2>
+      <p style="margin-bottom: 15px; font-weight: 500;"><b>問題：下列哪一個不是 11/1 生日？</b></p>
+      
+      <button class="option-btn" onclick="handleOption('kitty')">A. Hello Kitty</button>
+      <button class="option-btn" onclick="handleOption('roommate')">B. 我室友</button>
+      
+      <!-- ⚠️ 記得替換成你朋友的名字 -->
+      <button class="option-btn" onclick="handleOption('friend')">C. 李季嫻</button>
+      
+      <button class="option-btn" onclick="handleOption('meimei')">D. ㄇㄟㄇㄟ</button>
+    </div>
+
+    <!-- 第二關：吹蠟燭關卡 -->
+    <div id="stage2" class="stage">
+      <h2>🎂 第二關：吹蠟燭</h2>
+      <p>點擊蠟燭上的火把蠟燭呼呼吹熄</p>
+      <div class="cake-box" onclick="blowCandle()">
+        <span id="flameIcon" class="flame">🔥</span><br>
+        🎂
+      </div>
+      <p id="candleHint" style="font-size: 14px; color: #888;">點擊火苗吹蠟燭</p>
+    </div>
+
+    <!-- 第二關補給站：許願關卡 -->
+    <div id="stage2_wish" class="stage">
+      <h2>✨ 許下 3 個生日願望</h2>
+      <p style="font-size: 13px; color: #ff6b81; background: #fff0f3; padding: 10px 12px; border-radius: 12px; margin-bottom: 15px; line-height: 1.5; border: 1.5px dashed #ffb3c1;">
+        🧚‍♀️ 好好許願，最好具體一點或是一個實體之類的，說不定有小精靈聽到會幫你實現或送你禮物ㄛ...
+      </p>
+      
+      <input type="text" id="wish1" placeholder="願望 1：例如 希望身體健康 / 具體禮物">
+      <input type="text" id="wish2" placeholder="願望 2：">
+      <input type="text" id="wish3" placeholder="願望 3：">
+      
+      <button onclick="submitWishes()">封存願望，開寶箱！ 🎁</button>
+    </div>
+
+    <!-- 第三關：開寶箱關卡 -->
+    <div id="stage3" class="stage">
+      <h2>🎁 第三關：開啟生日寶箱</h2>
+      <p>連點寶箱 3 次解鎖終極大獎！</p>
+      <div id="chestIcon" class="chest" onclick="openChest()">🧰</div>
+      <br>
+      <p style="font-size: 14px; color: #aaa; margin: 0;">剩餘點擊數：<span id="clicksLeft">3</span></p>
+    </div>
+
+    <!-- 第四關：終極結局卡片與專屬影片 -->
+    <div id="stage4" class="stage">
+      <h2>🎉 生日快樂！！🎉</h2>
+      
+      <!-- 🎥 本地影片播放器區塊 -->
+      <div class="video-container">
+        <!-- ⚠️ 影片檔名預設為 video.mp4 -->
+        <video id="birthdayVideo" controls playsinline>
+          <source src="video.mp4" type="video/mp4">
+          你的瀏覽器不支援影片播放。
+        </video>
+      </div>
+
+      <p style="line-height: 1.6; margin: 10px 0;">
+        恭喜你順利通關！<br>
+        祝你新的一年所有的願望都實現，天天開心！
+      </p>
+      
+      <div style="background: #fff5f8; padding: 14px 16px; border-radius: 18px; text-align: left; margin: 15px 0; font-size: 14px; border: 2px dashed #ffd1dc;">
+        <b style="color: #ff6b81;">📜 你的 3 個生日心願：</b>
+        <ol style="margin: 8px 0 0 18px; padding: 0;">
+          <li id="showWish1"></li>
+          <li id="showWish2"></li>
+          <li id="showWish3"></li>
+        </ol>
+      </div>
+
+      <button onclick="location.reload()" style="background-color: #cbd5e1; box-shadow: 0 5px 0px #94a3b8;">再玩一次 🔄</button>
+    </div>
+
+  </div>
+
+  <script>
+    let isCorrectAnswer = false;
+
+    // --- 第一關選項邏輯 ---
+    function handleOption(type) {
+      const modal = document.getElementById("quizModal");
+      const img = document.getElementById("modalImage");
+      const title = document.getElementById("modalTitle");
+      const text = document.getElementById("modalText");
+
+      isCorrectAnswer = false;
+      img.style.display = "none";
+
+      if (type === 'kitty') {
+        title.innerText = "🎀 Hello Kitty";
+        text.innerText = "Hello Kitty 也是 11/1 生日喔！\n出生年月日：1974 年 11 月 1 日";
+        img.src = "kitty.jpg";
+        img.onerror = function() {
+          this.src = "https://upload.wikimedia.org/wikipedia/en/0/05/Hello_kitty_character_art.png";
+        };
+        img.style.display = "block";
+      } 
+      else if (type === 'roommate') {
+        title.innerText = "";
+        text.innerText = "對，我有一個室友真的也今天生日><";
+        img.src = "roommate.jpg";
+        img.style.display = "block";
+      } 
+      else if (type === 'friend') {
+        title.innerText = "🎉 祝你生日快樂！";
+        text.innerText = "喔生日快樂ㄛ🎉";
+        img.src = "friend.jpg"; 
+        img.style.display = "block";
+      } 
+      else if (type === 'meimei') {
+        title.innerText = "🎉 完全答對喔！";
+        text.innerText = "對喔！ㄇㄟㄇㄟ生日是 12/7 ";
+        img.src = "meimei.jpg"; 
+        img.style.display = "block";
+        isCorrectAnswer = true;
+      }
+
+      modal.style.display = "flex";
+    }
+
+    function closeQuizModal() {
+      document.getElementById("quizModal").style.display = "none";
+      if (isCorrectAnswer) {
+        goToStage(2);
+      }
+    }
+
+    // --- 第二關：吹蠟燭 ---
+    let candleBlown = false;
+    function blowCandle() {
+      if (candleBlown) return;
+      
+      const flame = document.getElementById("flameIcon");
+      flame.innerHTML = "💨";
+      flame.classList.remove("flame");
+      flame.classList.add("smoke");
+      
+      document.getElementById("candleHint").innerText = "蠟燭熄滅ㄌ✨";
+      candleBlown = true;
+      
+      setTimeout(() => {
+        goToStage('2_wish');
+      }, 1000);
+    }
+
+    // --- 許願關卡：記錄願望並秘密寄信給小精靈 (Formspree) ---
+    let userWishes = [];
+    function submitWishes() {
+      const w1 = document.getElementById("wish1").value.trim() || "平安順心";
+      const w2 = document.getElementById("wish2").value.trim() || "天天開心";
+      const w3 = document.getElementById("wish3").value.trim() || "秘密願望";
+
+      userWishes = [w1, w2, w3];
+
+      document.getElementById("showWish1").innerText = w1;
+      document.getElementById("showWish2").innerText = w2;
+      document.getElementById("showWish3").innerText = w3;
+
+      // ⚠️ 記得替換成你在 Formspree 複製的專屬 Endpoint 網址
+      const formspreeUrl = "https://formspree.io/f/mkjjznao";
+
+      fetch(formspreeUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          "願望一": w1,
+          "願望二": w2,
+          "願望三": w3,
+          "送出時間": new Date().toLocaleString()
+        })
+      }).catch(err => console.log("寄送狀態：", err));
+
+      alert("準備開啟寶箱吧 🎁");
+      goToStage(3);
+    }
+
+    // --- 第三關：開寶箱 + 自動播放影片 ---
+    let chestClicks = 3;
+    function openChest() {
+      const chest = document.getElementById("chestIcon");
+      chestClicks--;
+      document.getElementById("clicksLeft").innerText = chestClicks;
+      
+      chest.classList.add("shake");
+      setTimeout(() => chest.classList.remove("shake"), 300);
+
+      if (chestClicks <= 0) {
+        chest.innerHTML = "🎁";
+        
+        confetti({
+          particleCount: 130,
+          spread: 85,
+          origin: { y: 0.6 }
+        });
+        
+        setTimeout(() => {
+          goToStage(4);
+          
+          const video = document.getElementById("birthdayVideo");
+          if (video) {
+            video.play().catch(err => {
+              console.log("瀏覽器阻擋自動播放：", err);
+            });
+          }
+        }, 800);
+      }
+    }
+
+    function goToStage(stageId) {
+      const stages = document.querySelectorAll('.stage');
+      stages.forEach(s => s.classList.remove('active'));
+      document.getElementById('stage' + stageId).classList.add('active');
+    }
+  </script>
+
+</body>
+</html>
